@@ -16,5 +16,10 @@
     "url": "https://github.com/Prajith04/jotly/issues"
   },
   "homepage": "https://github.com/Prajith04/jotly#readme",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.11"
+  }
 }
