@@ -28,7 +28,12 @@ public class JotlyController {
         return note.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
-
+    @PutMapping("/{id}")
+    public ResponseEntity<JotlyModel> updateNote(@PathVariable Long id, @RequestBody JotlyModel jotly) {
+        return jotlyService.updateJotly(id, jotly)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteNote(@PathVariable Long id) {
         jotlyService.deleteJotly(id);

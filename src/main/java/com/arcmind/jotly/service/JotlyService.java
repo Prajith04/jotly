@@ -17,6 +17,14 @@ public class JotlyService {
     public List<JotlyModel> getAllJotlys() {
         return jotlyRepository.findAll();
     }
+    public Optional<JotlyModel> updateJotly(Long id, JotlyModel updatedJotlyData) {
+        return jotlyRepository.findById(id).map(existingJotly -> {
+            existingJotly.setTitle(updatedJotlyData.getTitle());
+            existingJotly.setContent(updatedJotlyData.getContent());
+            return jotlyRepository.save(existingJotly);
+        });
+    }
+
 
     public Optional<JotlyModel> getJotlyById(Long id) {
         return jotlyRepository.findById(id);
