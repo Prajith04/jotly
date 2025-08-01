@@ -2,6 +2,7 @@ package com.arcmind.jotly.controller;
 import com.arcmind.jotly.model.JotlyModel;
 import com.arcmind.jotly.service.JotlyService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,8 +20,19 @@ public class JotlyController {
     }
 
     @GetMapping
-    public List<JotlyModel> getAllNotes() {
-        return jotlyService.getAllJotlys();
+    public List<JotlyModel> getAllNotes(
+            @RequestParam(defaultValue = "createTime") String sort,
+            @RequestParam(defaultValue = "desc") String direction) {
+
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+        Sort sortBy = Sort.by(sortDirection, sort);
+
+        return jotlyService.getAllJotlys(sortBy);
+    }
+
+    @GetMapping("/search")
+    public List<JotlyModel> searchNotesByTitle(@RequestParam String title) {
+        return jotlyService.findByTitle(title);
     }
     @GetMapping("/{id}")
     public ResponseEntity<JotlyModel> getNoteById(@PathVariable Long id) {

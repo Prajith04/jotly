@@ -3,6 +3,7 @@ package com.arcmind.jotly.service;
 import com.arcmind.jotly.model.JotlyModel;
 import com.arcmind.jotly.repository.JotlyRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
@@ -14,8 +15,11 @@ public class JotlyService {
         return jotlyRepository.save(jotly);
     }
 
-    public List<JotlyModel> getAllJotlys() {
-        return jotlyRepository.findAll();
+    public List<JotlyModel> getAllJotlys(Sort sort) {
+        return jotlyRepository.findAll(sort);
+    }
+    public List<JotlyModel> findByTitle(String title) {
+        return jotlyRepository.findByTitle(title);
     }
     public Optional<JotlyModel> updateJotly(Long id, JotlyModel updatedJotlyData) {
         return jotlyRepository.findById(id).map(existingJotly -> {

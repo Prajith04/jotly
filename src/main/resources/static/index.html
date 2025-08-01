@@ -17,11 +17,25 @@
             line-height: 1.6;
         }
 
-        /* Container */
+        /* Main Layout Container */
         .container {
-            max-width: 960px;
+            max-width: 1200px; /* Increased max-width for the new layout */
             margin: 0 auto;
             padding: 1rem;
+        }
+
+        .main-layout {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .sidebar {
+            flex: 1; /* Sidebar takes 1 part of the flexible space */
+            min-width: 250px;
+        }
+
+        .main-content {
+            flex: 3; /* Main content takes 3 parts of the flexible space */
         }
 
         /* Typography */
@@ -47,7 +61,7 @@
             color: #4b5563;
         }
 
-        /* Form styles */
+        /* Form and Card styles */
         .card {
             background-color: #ffffff;
             padding: 1.5rem;
@@ -65,7 +79,7 @@
             color: #374151;
             margin-bottom: 0.25rem;
         }
-        input, textarea {
+        input, textarea, select {
             width: 100%;
             padding: 0.5rem;
             border: 1px solid #d1d5db;
@@ -73,7 +87,7 @@
             font-size: 1rem;
             background-color: #ffffff;
         }
-        input:focus, textarea:focus {
+        input:focus, textarea:focus, select:focus {
             outline: none;
             border-color: #3b82f6;
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
@@ -81,6 +95,12 @@
         textarea {
             resize: vertical;
             min-height: 100px;
+        }
+        .sort-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
         }
 
         /* Buttons */
@@ -159,21 +179,9 @@
         }
 
         /* Responsive design */
-        @media (max-width: 640px) {
-            .container {
-                padding: 0.5rem;
-            }
-            h1 {
-                font-size: 1.5rem;
-            }
-            .note-item {
+        @media (max-width: 768px) {
+            .main-layout {
                 flex-direction: column;
-                align-items: flex-start;
-                gap: 0.5rem;
-            }
-            .note-actions {
-                width: 100%;
-                justify-content: flex-end;
             }
         }
     </style>
@@ -181,31 +189,65 @@
 <body>
 <div class="container">
     <h1>Jotly Notes</h1>
+    <div class="main-layout">
 
-    <div class="card">
-        <h2 id="formHeader">Create a New Note</h2>
-        <form id="noteForm">
-            <input type="hidden" id="noteId" name="id">
-            <div class="form-group">
-                <label for="title">Title</label>
-                <input type="text" id="title" name="title" required>
+        <div class="sidebar">
+            <div class="card">
+                <h2>Search Notes</h2>
+                <form id="searchForm">
+                    <div class="form-group">
+                        <label for="searchTitle">Search by Title</label>
+                        <input type="text" id="searchTitle" name="searchTitle">
+                    </div>
+                    <button type="submit" class="btn-primary">Search</button>
+                    <button type="button" id="showAllButton" class="btn-secondary">Show All</button>
+                </form>
             </div>
-            <div class="form-group">
-                <label for="content">Content</label>
-                <textarea id="content" name="content" required></textarea>
-            </div>
-            <button type="submit" id="submitButton" class="btn-primary">Add Note</button>
-            <button type="button" id="cancelButton" class="btn-secondary" style="display: none;">Cancel</button>
-        </form>
-    </div>
 
-    <div id="notesList">
-        <h2>All Notes</h2>
+            <div class="card">
+                <h2>Sort Notes</h2>
+                <div class="sort-controls">
+                    <label for="sortField">Sort By:</label>
+                    <select id="sortField">
+                        <option value="createTime">Creation Date</option>
+                        <option value="title">Title</option>
+                    </select>
+
+                    <label for="sortDirection">Order:</label>
+                    <select id="sortDirection">
+                        <option value="desc">Descending</option>
+                        <option value="asc">Ascending</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <h2 id="formHeader">Create a New Note</h2>
+                <form id="noteForm">
+                    <input type="hidden" id="noteId" name="id">
+                    <div class="form-group">
+                        <label for="title">Title</label>
+                        <input type="text" id="title" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="content">Content</label>
+                        <textarea id="content" name="content" required></textarea>
+                    </div>
+                    <button type="submit" id="submitButton" class="btn-primary">Add Note</button>
+                    <button type="button" id="cancelButton" class="btn-secondary" style="display: none;">Cancel</button>
+                </form>
+            </div>
+
+            <div id="notesList">
+                <h2>All Notes</h2>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
-    // Base URL for the API
     const API_URL = '/api/notes';
     const noteForm = document.getElementById('noteForm');
     const formHeader = document.getElementById('formHeader');
@@ -214,12 +256,44 @@
     const contentInput = document.getElementById('content');
     const submitButton = document.getElementById('submitButton');
     const cancelButton = document.getElementById('cancelButton');
+    const searchForm = document.getElementById('searchForm');
+    const searchTitleInput = document.getElementById('searchTitle');
+    const showAllButton = document.getElementById('showAllButton');
+    const sortFieldSelect = document.getElementById('sortField');
+    const sortDirectionSelect = document.getElementById('sortDirection');
 
+    // Load notes on page load with default sorting
+    document.addEventListener('DOMContentLoaded', () => {
+        loadNotes(sortFieldSelect.value, sortDirectionSelect.value);
+    });
 
-    // Load all notes on page load
-    document.addEventListener('DOMContentLoaded', loadNotes);
+    // Event listeners for sorting controls
+    sortFieldSelect.addEventListener('change', () => {
+        loadNotes(sortFieldSelect.value, sortDirectionSelect.value);
+    });
+    sortDirectionSelect.addEventListener('change', () => {
+        loadNotes(sortFieldSelect.value, sortDirectionSelect.value);
+    });
 
-    // Handle form submission to create or update a note
+    // Handle search form submission
+    searchForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const searchTerm = searchTitleInput.value;
+        if (searchTerm) {
+            searchNotes(searchTerm);
+        } else {
+            loadNotes(sortFieldSelect.value, sortDirectionSelect.value);
+        }
+    });
+
+    // Handle "Show All" button click
+    showAllButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        searchTitleInput.value = '';
+        loadNotes(sortFieldSelect.value, sortDirectionSelect.value);
+    });
+
+    // Handle create/update form submission
     noteForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = noteIdInput.value;
@@ -241,15 +315,13 @@
                 throw new Error('Failed to save note');
             }
 
-            // Reset form state and reload notes
             resetForm();
-            loadNotes();
+            loadNotes(sortFieldSelect.value, sortDirectionSelect.value);
         } catch (error) {
             alert('Error saving note: ' + error.message);
         }
     });
 
-    // Reset the form to its initial 'create' state
     function resetForm() {
         noteForm.reset();
         noteIdInput.value = '';
@@ -259,7 +331,6 @@
         cancelButton.style.display = 'none';
     }
 
-    // Function to set up the form for editing a note
     async function editNote(id) {
         try {
             const response = await fetch(`${API_URL}/${id}`);
@@ -268,12 +339,10 @@
             }
             const note = await response.json();
 
-            // Populate form fields with note data
             noteIdInput.value = note.id;
             titleInput.value = note.title;
             contentInput.value = note.content;
 
-            // Change form title and button
             formHeader.textContent = 'Edit Note';
             submitButton.textContent = 'Update Note';
             submitButton.className = 'btn-warning';
@@ -283,52 +352,58 @@
         }
     }
 
-    // Handle cancel button click
-    cancelButton.addEventListener('click', (e) => {
-        e.preventDefault();
-        resetForm();
-    });
-
-    // Load and display all notes
-    async function loadNotes() {
+    async function searchNotes(title) {
         try {
-            const response = await fetch(API_URL);
+            const response = await fetch(`${API_URL}/search?title=${encodeURIComponent(title)}`);
             const notes = await response.json();
+            displayNotes(notes);
+        } catch (error) {
+            alert('Error searching notes: ' + error.message);
+        }
+    }
 
-            const notesList = document.getElementById('notesList');
-            notesList.innerHTML = '<h2>All Notes</h2>'; // Clear existing notes except the header
-
-            if (notes.length === 0) {
-                notesList.innerHTML += '<p class="no-notes">No notes available.</p>';
-                return;
-            }
-
-            notes.forEach(note => {
-                const created = new Date(note.createTime).toLocaleString();
-                const updated = new Date(note.updateTime).toLocaleString();
-
-                const noteDiv = document.createElement('div');
-                noteDiv.className = 'note-item';
-                noteDiv.innerHTML = `
-                    <div class="note-content">
-                        <h3>${note.title}</h3>
-                        <p>${note.content}</p>
-                        <span class="note-meta">Created: ${created}</span>
-                        <span class="note-meta">Last Updated: ${updated}</span>
-                    </div>
-                    <div class="note-actions">
-                        <button onclick="editNote(${note.id})" class="btn-warning">Edit</button>
-                        <button onclick="deleteNote(${note.id})" class="btn-danger">Delete</button>
-                    </div>
-                `;
-                notesList.appendChild(noteDiv);
-            });
+    async function loadNotes(sortField, sortDirection) {
+        try {
+            const url = `${API_URL}?sort=${sortField}&direction=${sortDirection}`;
+            const response = await fetch(url);
+            const notes = await response.json();
+            displayNotes(notes);
         } catch (error) {
             alert('Error loading notes: ' + error.message);
         }
     }
 
-    // Delete a note
+    function displayNotes(notes) {
+        const notesList = document.getElementById('notesList');
+        notesList.innerHTML = '<h2>All Notes</h2>';
+
+        if (notes.length === 0) {
+            notesList.innerHTML += '<p class="no-notes">No notes available.</p>';
+            return;
+        }
+
+        notes.forEach(note => {
+            const created = new Date(note.createTime).toLocaleString();
+            const updated = new Date(note.updateTime).toLocaleString();
+
+            const noteDiv = document.createElement('div');
+            noteDiv.className = 'note-item';
+            noteDiv.innerHTML = `
+                <div class="note-content">
+                    <h3>${note.title}</h3>
+                    <p>${note.content}</p>
+                    <span class="note-meta">Created: ${created}</span>
+                    <span class="note-meta">Last Updated: ${updated}</span>
+                </div>
+                <div class="note-actions">
+                    <button onclick="editNote(${note.id})" class="btn-warning">Edit</button>
+                    <button onclick="deleteNote(${note.id})" class="btn-danger">Delete</button>
+                </div>
+            `;
+            notesList.appendChild(noteDiv);
+        });
+    }
+
     async function deleteNote(id) {
         if (!confirm('Are you sure you want to delete this note?')) return;
 
@@ -339,7 +414,7 @@
             if (!response.ok) {
                 throw new Error('Failed to delete note');
             }
-            loadNotes(); // Reload notes after deletion
+            loadNotes(sortFieldSelect.value, sortDirectionSelect.value);
         } catch (error) {
             alert('Error deleting note: ' + error.message);
         }
