@@ -1,6 +1,7 @@
 package com.arcmind.jotly.controller;
 import com.arcmind.jotly.model.JotlyModel;
 import com.arcmind.jotly.service.JotlyService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -8,12 +9,10 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/notes")
 public class JotlyController {
     private final JotlyService  jotlyService;
-    public JotlyController(JotlyService jotlyService) {
-        this.jotlyService = jotlyService;
-    }
     @PostMapping
     public JotlyModel createNote(@RequestBody JotlyModel note) {
         return jotlyService.saveJotly(note);
