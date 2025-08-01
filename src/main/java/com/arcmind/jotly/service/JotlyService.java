@@ -1,9 +1,13 @@
 package com.arcmind.jotly.service;
 
 import com.arcmind.jotly.model.JotlyModel;
+import com.arcmind.jotly.model.UserModel;
 import com.arcmind.jotly.repository.JotlyRepository;
+import com.arcmind.jotly.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
@@ -11,15 +15,27 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class JotlyService {
     private final JotlyRepository jotlyRepository;
+    private final UserRepository userRepository;
     public JotlyModel saveJotly(JotlyModel jotly) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        UserModel user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        jotly.setUserModel(user);
         return jotlyRepository.save(jotly);
     }
 
-    public List<JotlyModel> getAllJotlys(Sort sort) {
-        return jotlyRepository.findAll(sort);
+    public List<JotlyModel> getNotesForCurrentUser(String username, Sort sort) {
+        UserModel user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        return jotlyRepository.findByUserModel(user,sort);
     }
+
     public List<JotlyModel> findByTitle(String title) {
-        return jotlyRepository.findByTitle(title);
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        UserModel user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return jotlyRepository.findByUserModelAndTitle(user,title);
     }
     public Optional<JotlyModel> updateJotly(Long id, JotlyModel updatedJotlyData) {
         return jotlyRepository.findById(id).map(existingJotly -> {

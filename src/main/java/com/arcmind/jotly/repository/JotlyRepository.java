@@ -1,10 +1,13 @@
 package com.arcmind.jotly.repository;
 
 import com.arcmind.jotly.model.JotlyModel;
+import com.arcmind.jotly.model.UserModel;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface JotlyRepository extends JpaRepository<JotlyModel,Long> {
-    List<JotlyModel> findByTitle(String title);
+    List<JotlyModel> findByUserModelAndTitle(UserModel userModel, String title);
+    List<JotlyModel> findByUserModel(UserModel userModel, Sort sort);
 
 }

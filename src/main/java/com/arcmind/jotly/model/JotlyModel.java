@@ -1,7 +1,6 @@
 package com.arcmind.jotly.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,6 +15,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 public class JotlyModel {
+    @ManyToOne
+    @Setter
+    private UserModel userModel;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -28,10 +30,13 @@ public class JotlyModel {
     @Lob
     @Setter
     private String content;
-    public JotlyModel(String title, String content) {
+
+
+
+    public JotlyModel(String title, String content, UserModel userModel) {
         this.title = title;
         this.content = content;
-
+        this.userModel = userModel;
     }
 
 }

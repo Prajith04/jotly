@@ -4,6 +4,7 @@ import com.arcmind.jotly.service.JotlyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,7 +28,11 @@ public class JotlyController {
         Sort.Direction sortDirection = Sort.Direction.fromString(direction);
         Sort sortBy = Sort.by(sortDirection, sort);
 
-        return jotlyService.getAllJotlys(sortBy);
+        // 👇 Get current username from Spring Security
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        // 👇 Fetch only notes of the logged-in user
+        return jotlyService.getNotesForCurrentUser(username, sortBy);
     }
 
     @GetMapping("/search")
