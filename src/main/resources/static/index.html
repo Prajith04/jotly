@@ -358,6 +358,10 @@
     async function editNote(id) {
         try {
             const response = await fetch(`${API_URL}/${id}`);
+            if (response.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
             if (!response.ok) {
                 throw new Error('Note not found');
             }
@@ -379,6 +383,10 @@
     async function searchNotes(title) {
         try {
             const response = await fetch(`${API_URL}/search?title=${encodeURIComponent(title)}`);
+            if (response.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
             const notes = await response.json();
             displayNotes(notes);
         } catch (error) {
@@ -389,7 +397,15 @@
     async function loadNotes(sortField, sortDirection) {
         try {
             const url = `${API_URL}?sort=${sortField}&direction=${sortDirection}`;
-            const response = await fetch(url);
+            const response = await fetch(url, {
+                credentials: 'include'
+            });
+
+            if (response.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
+
             const notes = await response.json();
             displayNotes(notes);
         } catch (error) {

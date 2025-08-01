@@ -28,8 +28,8 @@ public class AuthController {
         return "redirect:/login";
     }
 
-    @GetMapping("/login")
-    public String showLoginForm() {
-        return "login";
+    @GetMapping("/")
+    public String home() {
+        return "redirect:/login.html"; // or /index.html
     }
 }
