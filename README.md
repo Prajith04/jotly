@@ -48,11 +48,14 @@ src/main/java/com/arcmind/jotly/
 
 ## REST Endpoints
 
-- `JotlyController` exposes endpoints for CRUD operations on Jotly notes:
-  - `GET /jotlys` - List all notes for the authenticated user
-  - `POST /jotlys` - Create a new note
-  - `PUT /jotlys/{id}` - Update an existing note
-  - `DELETE /jotlys/{id}` - Delete a note
+The following endpoints are exposed by `JotlyController`:
+
+- `POST /api/notes` — Create a new note
+- `GET /api/notes` — Get all notes for the authenticated user, with optional sorting (`sort` and `direction` query params)
+- `GET /api/notes/search?title=...` — Search notes by title
+- `GET /api/notes/{id}` — Get a specific note by its ID
+- `PUT /api/notes/{id}` — Update a note by its ID
+- `DELETE /api/notes/{id}` — Delete a note by its ID
 
 ## Static Resources
 
