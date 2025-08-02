@@ -148,34 +148,137 @@
         .btn-secondary:hover {
             background-color: #4b5563;
         }
+        .btn-summarize {
+            background-color: #8b5cf6;
+            color: #ffffff;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+            border-radius: 0.25rem;
+            transition: background-color 0.2s;
+        }
+        .btn-summarize:hover {
+            background-color: #7c3aed;
+        }
 
         /* Notes list */
         .note-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             background-color: #ffffff;
-            padding: 1rem;
             border-radius: 0.5rem;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             margin-bottom: 1rem;
+            overflow: hidden;
+            transition: box-shadow 0.3s ease;
         }
+
+        .note-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
         .note-content {
             flex-grow: 1;
         }
+
+        .note-title {
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            transition: all 0.3s ease;
+            user-select: none;
+            position: relative;
+        }
+
+        .note-title:hover {
+            background-color: #f0f9ff;
+            transform: translateY(-1px);
+        }
+
+        .note-title:active {
+            transform: translateY(0);
+        }
+
+        .note-title h3 {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .note-title h3::after {
+            content: '▼';
+            font-size: 0.8rem;
+            color: #6b7280;
+            transition: transform 0.3s ease;
+        }
+
+        .note-title.expanded h3::after {
+            transform: rotate(180deg);
+        }
+
+        .note-content-detail {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+            background-color: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .note-content-detail.expanded {
+            max-height: 500px;
+            padding: 1rem;
+        }
+
+        .note-content-detail p {
+            margin: 0 0 1rem 0;
+            line-height: 1.6;
+        }
+
+        .note-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .note-meta-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
         .note-meta {
             display: block;
             font-size: 0.75rem;
             color: #6b7280;
-            margin-top: 0.25rem;
         }
-        .note-actions {
-            display: flex;
-            gap: 0.5rem;
+
+        /* Summary styles */
+        #summaryContent {
+            max-height: 300px;
+            overflow-y: auto;
+            word-wrap: break-word;
+            word-break: break-word;
         }
-        .no-notes {
-            color: #6b7280;
+
+        #summaryContent pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin: 0;
+            font-family: inherit;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .summary-placeholder {
             font-style: italic;
+            color: #6b7280;
         }
 
         /* Responsive design */
@@ -249,6 +352,16 @@
                 <h2>All Notes</h2>
             </div>
         </div>
+
+        <div class="sidebar">
+            <div class="card" id="summaryCard" style="display: none;">
+                <h2>Summary</h2>
+                <div id="summaryContent">
+                    <p class="summary-placeholder">Click "Summarize" on any note to view its summary here.</p>
+                </div>
+                <button id="clearSummary" class="btn-secondary" style="margin-top: 1rem;">Clear</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -267,6 +380,9 @@
     const sortFieldSelect = document.getElementById('sortField');
     const sortDirectionSelect = document.getElementById('sortDirection');
     const logoutButton = document.getElementById('logoutButton');
+    const summaryCard = document.getElementById('summaryCard');
+    const summaryContent = document.getElementById('summaryContent');
+    const clearSummaryButton = document.getElementById('clearSummary');
 
     logoutButton.addEventListener('click', async () => {
         try {
@@ -346,6 +462,11 @@
         }
     });
 
+    clearSummaryButton.addEventListener('click', () => {
+        summaryCard.style.display = 'none';
+        summaryContent.innerHTML = '<p class="summary-placeholder">Click "Summarize" on any note to view its summary here.</p>';
+    });
+
     function resetForm() {
         noteForm.reset();
         noteIdInput.value = '';
@@ -423,25 +544,63 @@
         }
 
         notes.forEach(note => {
-            const created = new Date(note.createTime).toLocaleString();
-            const updated = new Date(note.updateTime).toLocaleString();
-
             const noteDiv = document.createElement('div');
             noteDiv.className = 'note-item';
             noteDiv.innerHTML = `
-                <div class="note-content">
-                    <h3>${note.title}</h3>
-                    <p>${note.content}</p>
-                    <span class="note-meta">Created: ${created}</span>
-                    <span class="note-meta">Last Updated: ${updated}</span>
+                <div class="note-header">
+                    <div class="note-title" onclick="toggleNoteContent(this, ${note.id})">
+                        <h3>${note.title}</h3>
+                    </div>
+                    <div class="note-actions">
+                        <button onclick="editNote(${note.id})" class="btn-warning">Edit</button>
+                        <button onclick="deleteNote(${note.id})" class="btn-danger">Delete</button>
+                    </div>
                 </div>
-                <div class="note-actions">
-                    <button onclick="editNote(${note.id})" class="btn-warning">Edit</button>
-                    <button onclick="deleteNote(${note.id})" class="btn-danger">Delete</button>
-                </div>
+                <div class="note-content-detail"></div>
             `;
             notesList.appendChild(noteDiv);
         });
+    }
+
+    async function toggleNoteContent(titleDiv, id) {
+        const noteItem = titleDiv.closest('.note-item');
+        const detailDiv = noteItem.querySelector('.note-content-detail');
+
+        if (!detailDiv.classList.contains('expanded')) {
+            // Expand: fetch and show content
+            try {
+                const response = await fetch(`${API_URL}/${id}`);
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+                if (!response.ok) {
+                    throw new Error('Note not found');
+                }
+                const note = await response.json();
+                const created = new Date(note.createTime).toLocaleString();
+                const updated = new Date(note.updateTime).toLocaleString();
+
+                detailDiv.innerHTML = `
+                    <p>${note.content}</p>
+                    <div class="note-footer">
+                        <div class="note-meta-container">
+                            <span class="note-meta">Created: ${created}</span>
+                            <span class="note-meta">Last Updated: ${updated}</span>
+                        </div>
+                        <button onclick="summarizeNote(${note.id})" class="btn-summarize">Summarize</button>
+                    </div>
+                `;
+                detailDiv.classList.add('expanded');
+                titleDiv.classList.add('expanded');
+            } catch (error) {
+                alert('Error loading note content: ' + error.message);
+            }
+        } else {
+            // Collapse
+            detailDiv.classList.remove('expanded');
+            titleDiv.classList.remove('expanded');
+        }
     }
 
     async function deleteNote(id) {
@@ -457,6 +616,46 @@
             loadNotes(sortFieldSelect.value, sortDirectionSelect.value);
         } catch (error) {
             alert('Error deleting note: ' + error.message);
+        }
+    }
+
+    async function summarizeNote(id) {
+        try {
+            // First fetch the note content
+            const noteResponse = await fetch(`${API_URL}/${id}`, {
+                credentials: 'include'
+            });
+
+            if (noteResponse.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
+
+            if (!noteResponse.ok) {
+                throw new Error('Note not found');
+            }
+
+            const note = await noteResponse.json();
+
+            const summarizeResponse = await fetch(`${API_URL}/summarize`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(note.content)
+            });
+
+            if (!summarizeResponse.ok) {
+                throw new Error('Failed to generate summary');
+            }
+
+            const summary = await summarizeResponse.text();
+            summaryContent.innerHTML = `<pre>${summary}</pre>`;
+            summaryCard.style.display = 'block';
+
+        } catch (error) {
+            alert('Error generating summary: ' + error.message);
         }
     }
 </script>

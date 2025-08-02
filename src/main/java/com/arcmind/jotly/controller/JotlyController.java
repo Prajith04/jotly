@@ -56,4 +56,38 @@ public class JotlyController {
         jotlyService.deleteJotly(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/summarize")
+    public ResponseEntity<String> summarizeNote(@RequestBody String content) {
+        String summary = generateSummary(content);
+        return ResponseEntity.ok(summary);
+    }
+
+    private String generateSummary(String content) {
+        if (content == null || content.trim().isEmpty()) {
+            return "No content to summarize.";
+        }
+        int firstPeriod = content.indexOf('.');
+        int firstExclamation = content.indexOf('!');
+        int firstQuestion = content.indexOf('?');
+
+        int endOfFirstSentence = Math.min(
+            firstPeriod == -1 ? Integer.MAX_VALUE : firstPeriod,
+            Math.min(
+                firstExclamation == -1 ? Integer.MAX_VALUE : firstExclamation,
+                firstQuestion == -1 ? Integer.MAX_VALUE : firstQuestion
+            )
+        );
+
+        if (endOfFirstSentence != Integer.MAX_VALUE && endOfFirstSentence < 200) {
+            return content.substring(0, endOfFirstSentence + 1).trim();
+        }
+
+        // If no sentence ending found or sentence is too long, truncate to 100 chars
+        if (content.length() <= 100) {
+            return content.trim();
+        }
+
+        return content.substring(0, 100).trim() + "...";
+    }
 }
