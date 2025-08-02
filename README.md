@@ -1,6 +1,16 @@
 # Jotly
 
-Jotly is a Spring Boot application following the MVC (Model-View-Controller) architecture. It provides RESTful endpoints and authentication using Spring Security.
+Jotly is a note-taking and management application built with Spring Boot. It allows users to register, log in, and securely create, view, update, and delete personal notes (called "Jotlys") via a RESTful API. The app enforces authentication and authorization using Spring Security, ensuring that only authenticated users can access and manage their own notes.
+
+## Main Functionalities
+
+- User registration and login with secure password handling
+- Authentication and authorization using Spring Security
+- Create, read, update, and delete personal notes (Jotlys)
+- RESTful API endpoints for all note operations
+- Each user can only access and manage their own notes
+- HTML pages for login, registration, and index
+- Role-based access control (optional for future extension)
 
 ## Project Structure
 
@@ -32,15 +42,17 @@ src/main/java/com/arcmind/jotly/
 
 ## Authentication & Authorization
 
-- **Spring Security** is configured in `Config/SecurityConfig.java`.
-- Registration and login are handled by `AuthController`.
-- Passwords are securely encoded using a `PasswordEncoder`.
-- Access to resources is protected based on user roles and authentication status.
+- **Spring Security** is configured in `Config/SecurityConfig.java` to protect endpoints and manage user sessions.
+- Registration and login are handled by `AuthController`, with password encoding for security.
+- Only authenticated users can access Jotly resources, and user roles can be enforced for further authorization.
 
 ## REST Endpoints
 
-- `JotlyController` exposes endpoints for CRUD operations on Jotly resources.
-- Endpoints follow RESTful conventions (GET, POST, PUT, DELETE).
+- `JotlyController` exposes endpoints for CRUD operations on Jotly notes:
+  - `GET /jotlys` - List all notes for the authenticated user
+  - `POST /jotlys` - Create a new note
+  - `PUT /jotlys/{id}` - Update an existing note
+  - `DELETE /jotlys/{id}` - Delete a note
 
 ## Static Resources
 
@@ -55,4 +67,3 @@ src/main/java/com/arcmind/jotly/
 ## License
 
 MIT
-
