@@ -2,6 +2,9 @@ package com.arcmind.jotly.controller;
 import com.arcmind.jotly.model.JotlyModel;
 import com.arcmind.jotly.service.JotlyService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,6 +18,8 @@ import java.util.Optional;
 @RequestMapping("/api/notes")
 public class JotlyController {
     private final JotlyService  jotlyService;
+    private final ChatModel chatModel;
+
     @PostMapping
     public JotlyModel createNote(@RequestBody JotlyModel note) {
         return jotlyService.saveJotly(note);
@@ -59,8 +64,10 @@ public class JotlyController {
 
     @PostMapping("/summarize")
     public ResponseEntity<String> summarizeNote(@RequestBody String content) {
-        String summary = generateSummary(content);
-        return ResponseEntity.ok(summary);
+        ChatResponse response=chatModel.call(
+                new Prompt(content)
+        );
+        return ResponseEntity.ok(response.getResult().getOutput().getText());
     }
 
     private String generateSummary(String content) {
